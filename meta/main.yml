@@ -2,7 +2,7 @@
 galaxy_info:
   role_name: nginx_proxy_manager
   namespace: john
-  author: john
+  author: gh-PonyM
   description: Generated ansible role docker using docker compose for ansible-nginx-proxy-manager
   company: I'm a freelancer
   license: MIT license

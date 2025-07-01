@@ -2,6 +2,19 @@
 
 Generated ansible role docker using docker compose for ansible-nginx-proxy-manager
 
+## Installation
+
+Install the role using `ansible-galaxy` using a `requirements.yml` file:
+
+```yaml
+
+roles:
+- src: https://github.com/gh-PonyM/nginx_proxy_manager.git
+  version: main
+  name: nginx_proxy_manager
+  scm: git
+```
+
 ## docker-compose.yml template
 
 The original [docker-compose.yml](docker-compose.yml) was transformed into an [ansible template](templates/docker-compose.yml)
