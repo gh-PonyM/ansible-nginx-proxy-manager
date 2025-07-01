@@ -1,0 +1,58 @@
+---
+
+# dedicated user that owns the repo, will be added to the docker group
+docker_deployment_user: dockerusr
+docker_deployment_user_id: 1002
+prmgr_ext_net: proxy-tier
+prmgr_project_name: nginx_proxy_manager
+
+# service state corresponding to docker-compose up and down
+# this does not influence if the user will be destroyed
+prmgr_state: present
+
+# remove the repository source directory
+prmgr_remove: false
+
+# environment from files:
+# - docker-compose.yml
+
+# environment config 
+prmgr_releases: {'proxy_manager': 'latest'}
+# environment config for proxy_manager service
+prmgr_db_sqlite_file: /data/database.sqlite
+prmgr_disable_ipv6: true
+prmgr_host_port_proxy_manager_80: 80
+prmgr_host_port_proxy_manager_443: 443
+prmgr_host_port_proxy_manager_81: 81
+
+# secrets environment config for None service
+# secrets environment config for proxy_manager service
+
+# defaults for volume mounts
+prmgr_app_mount_dir: "./data/app"
+prmgr_letsencrypt_mount_dir: "./data/letsencrypt"
+
+# pre-docker compose command using command module
+prmgr_pre_startup_commands: []
+
+# pre-docker startup script content
+prmgr_pre_startup_script:
+prmgr_pre_startup_script_remove: false
+
+# post-docker up commands
+prmgr_post_startup_commands: []
+
+# post-docker script content
+prmgr_post_startup_script:
+prmgr_post_startup_script_remove: false
+
+# enable automatic updates for latest tag
+prmgr_auto_update: false
+
+# When to update the contains using cron
+prmgr_auto_update_cron_hour: "3"
+prmgr_auto_update_cron_minute: "0"
+prmgr_auto_update_cron_weekday: "0"
+prmgr_auto_update_cron_month: "*"
+
+compose_v1: false

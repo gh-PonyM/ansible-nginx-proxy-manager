@@ -1,0 +1,24 @@
+---
+
+- name: legacy | Ensure compose setup is stopped
+  community.docker.docker_compose:
+    project_name: "{{ prmgr_project_name }}"
+    project_src: "{{ prmgr_repository_src }}"
+    debug: true
+    state: absent
+  become_user: "{{ prmgr_user }}"
+  when: compose_v1
+
+- name: Ensure compose setup is stopped
+  community.docker.docker_compose_v2:
+    project_name: "{{ prmgr_project_name }}"
+    project_src: "{{ prmgr_repository_src }}"
+    state: absent
+  become_user: "{{ prmgr_user }}"
+  when: not compose_v1
+
+- name: Ensure repository path is absent
+  file:
+    path: "{{ prmgr_repository_src }}"
+    state: absent
+  become: true

@@ -1,0 +1,122 @@
+---
+
+- name: Ensure deployment user for nginx_proxy_manager
+  user:
+    name: "{{ docker_deployment_user }}"
+    state: "{{ prmgr_state | default('present') }}"
+    create_home: true
+    uid: "{{ docker_deployment_user_id }}"
+    shell: /bin/bash
+
+- name: Ensure user is added to the docker group.
+  user:
+    name: "{{ docker_deployment_user }}"
+    groups: docker
+    append: true
+
+- name: Ensure repository paths are present
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_deployment_user }}"
+    group: "{{ docker_deployment_user }}"
+  become: true
+  loop:
+   - "{{ prmgr_repository_src }}"
+   - "{{ prmgr_repository_src }}/scripts"
+
+- name: Check if docker-compose.yml exists
+  stat:
+    path: "{{ prmgr_repository_src }}/docker-compose.yml"
+  register: compose
+
+- name: test docker-compose changed
+  template:
+    src: "docker-compose.yml"
+    dest: "{{ prmgr_repository_src }}/docker-compose.yml"
+    owner: "{{ docker_deployment_user }}"
+    mode: "600"
+  check_mode: true
+  notify: prmgr_service_stop
+  when: compose.stat.exists
+
+- meta: flush_handlers
+
+- name: Copy docker-compose.yml
+  template:
+    src: "docker-compose.yml"
+    dest: "{{ prmgr_repository_src }}/docker-compose.yml"
+    owner: "{{ docker_deployment_user }}"
+    group: "{{ docker_deployment_user }}"
+    mode: "600"
+
+- include_tasks: run_cmds.yml
+  vars:
+    cmds: "{{ prmgr_pre_startup_commands }}"
+    remove_script: "{{ prmgr_pre_startup_script_remove }}"
+    script_content: "{{ prmgr_pre_startup_script }}"
+    script_name: pre_startup.sh
+  when: prmgr_state == 'present'
+
+- name: legacy | Ensure services are {{ prmgr_state }}
+  community.docker.docker_compose:
+    project_name: "{{ prmgr_project_name }}"
+    project_src: "{{ prmgr_repository_src }}"
+    debug: true
+    state: "{{ prmgr_state }}"
+    build: false
+    files:
+      - docker-compose.yml
+  become_user: "{{ docker_deployment_user }}"
+  when:
+    - compose_v1
+
+# Requires community.docker >= 3.8.0. ansible-galaxy does not handle collection dependencies in roles meta/main.yml
+- name: Ensure services are {{ prmgr_state }}
+  community.docker.docker_compose_v2:
+    project_name: "{{ prmgr_project_name }}"
+    project_src: "{{ prmgr_repository_src }}"
+    state: "{{ prmgr_state }}"
+    files:
+      - docker-compose.yml
+  become_user: "{{ docker_deployment_user }}"
+  when:
+    - not compose_v1
+
+- include_tasks: run_cmds.yml
+  vars:
+    cmds: "{{ prmgr_post_startup_commands }}"
+    remove_script: "{{ prmgr_post_startup_script_remove }}"
+    script_content: "{{ prmgr_post_startup_script }}"
+    script_name: post_startup.sh
+  when: "{{ prmgr_state == 'present' }}"
+
+- name: Put auto-update script
+  copy:
+    content: |
+      #!/usr/bin/env bash
+      
+      set -eu
+      cd {{ prmgr_repository_src }}
+      docker compose pull
+      docker compose up -d
+
+    dest: "{{ prmgr_repository_src }}/autoupdate.sh"
+    owner: "{{ docker_deployment_user }}"
+    group: "{{ docker_deployment_user }}"
+    mode: "770"
+  when: prmgr_auto_update
+
+- name: Set auto-update cron to {{ cron_state }}
+  cron:
+    name: update all services for nginx_proxy_manager
+    job: "{{ prmgr_repository_src }}/autoupdate.sh"
+    hour: "{{ prmgr_auto_update_cron_hour }}"
+    minute: "{{ prmgr_auto_update_cron_minute }}"
+    weekday: "{{ prmgr_auto_update_cron_weekday }}"
+    month: "{{ prmgr_auto_update_cron_month }}"
+    user: "{{ docker_deployment_user }}"
+    state: "{{ cron_state }}"
+  become_user: "{{ docker_deployment_user }}"
+  vars:
+    cron_state: "{{ 'present' if prmgr_auto_update else 'absent' }}"

@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  role_name: nginx_proxy_manager
+  namespace: john
+  author: john
+  description: Generated ansible role docker using docker compose for ansible-nginx-proxy-manager
+  company: I'm a freelancer
+  license: MIT license
+  min_ansible_version: "2.1"

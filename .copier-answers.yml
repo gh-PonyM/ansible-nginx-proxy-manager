@@ -1,0 +1,28 @@
+_commit: 2.0.0-1-gee30851
+_src_path: gl:lksch-group/deploy-docker-compose-template
+ansible_defaults_prefix: prmgr_
+compose_file_path: docker-compose.yml
+docker_user: dockerusr
+docker_user_id: 1002
+galaxy_author: John Doe
+galaxy_role_namespace: john
+galaxy_tags: []
+github_user: john
+license: MIT license
+min_ansible_version: '2.1'
+min_secret_length: 17
+molecule_distros:
+- ubuntu2204
+- debian12
+molecule_docker_test: true
+project_description: Generated ansible role docker using docker compose for ansible-nginx-proxy-manager
+project_name: ansible-nginx-proxy-manager
+proxy_container_net_attach: ''
+remove_cli_artefact: true
+role_name: nginx_proxy_manager
+secret_provider: passwordstore
+secret_string_template: services/{role_name}/{service_name}/{env_key}
+standalone_role: true
+user_company: I'm a freelancer
+user_email: john@doe.com
+user_name: John Doe

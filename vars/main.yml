@@ -1,0 +1,3 @@
+---
+
+prmgr_repository_src: "/home/{{ docker_deployment_user }}/{{ prmgr_project_name }}"
